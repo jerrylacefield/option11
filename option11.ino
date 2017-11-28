@@ -7,17 +7,20 @@
 #include "SPI.h"
 #include "Adafruit_GFX.h"
 #include "Adafruit_ILI9341.h"
+#include "XPT2046_Touchscreen.h"
 
+#define CS_PIN 25   //Touchscreen Chip Selector
+XPT2046_Touchscreen ts = XPT2046_Touchscreen(CS_PIN);
 
-#define _cs   17  // goes to TFT CS
-#define _dc   16  // goes to TFT DC
-#define _mosi 23  // goes to TFT MOSI
-#define _sclk 18  // goes to TFT SCK/CLK
-#define _rst  5   // goes to TFT RESET
-#define _miso     // Not connected
-//       3.3V     // Goes to TFT LED  
+#define _cs   2     // goes to TFT CS
+#define _dc   26    // goes to TFT DC
+#define _mosi 23    // goes to TFT MOSI
+#define _sclk 18    // goes to TFT SCK/CLK
+#define _rst  14    // goes to TFT RESET
+#define _miso 19    // Not connected
+//       3.3V       // Goes to TFT LED  
 //       3.3v       // Goes to TFT Vcc
-//       Gnd      // Goes to TFT Gnd        
+//       Gnd        // Goes to TFT Gnd        
 
 // Use hardware SPI
 Adafruit_ILI9341 tft = Adafruit_ILI9341(_cs, _dc, _rst);
@@ -28,12 +31,17 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(_cs, _dc, _rst);
 void setup() {
   Serial.begin(115200);
   Serial.println("ILI9341 Test!");
-
+  
   tft.begin();
+  if (!ts.begin()) {
+    Serial.println("Couldn't start touchscreen");
+    while(1);
+  }
+  Serial.println("Touchscreen started successfully");
+  
   tft.setRotation(1);
   tft.fillScreen(ILI9341_BLUE);
   tft.setTextSize(3);
-  tft.println("ILI9341 Test!");
   delay(1000);
   tft.fillScreen(ILI9341_BLACK);
 
@@ -45,13 +53,13 @@ void setup() {
 
 void loop() {
   displayTitle();
-//  hello("Class");
-//  delay(500);
-//  goodbye("Adam");
-//  delay(500);
   displayCurrentDate();
   displayTime();
-  animatePowerClean(4);
+  if (ts.touched()) {
+    animatePowerClean(4);
+  }
+  tft.fillRect(50, 55, 130, 130, ILI9341_BLACK);
+//  animatePowerClean(4);
 }
 
 unsigned long displayTitle() {
@@ -76,7 +84,7 @@ unsigned long animatePowerClean(int reps) {
         delay(1000);
       }
     }
-//    tft.fillRect(0, 51, 229, 129, ILI9341_BLACK);
+///    tft.fillRect(0, 51, 229, 129, ILI9341_BLACK);
   }
 }
 
@@ -132,4 +140,3 @@ unsigned long displayTime() {
   tft.setTextSize(1);
   tft.print(" PM");
 }
-
